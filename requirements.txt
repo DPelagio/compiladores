@@ -1,0 +1,3 @@
+pydot==1.2.3
+graphviz==0.5.2
+pysimpleautomata==0.5.0

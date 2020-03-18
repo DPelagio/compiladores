@@ -9,8 +9,10 @@ from PySimpleAutomata import automata_IO
 from PySimpleAutomata import DFA
 from PySimpleAutomata import NFA
 import json
+import os
 from time import sleep
 
+path = os.path.dirname(os.path.abspath(__file__)) + '/'
 
 class Quintuple:
     def __init__(self, alphabet, states, final_states, initial_state, transition_matrix):
@@ -126,7 +128,7 @@ def move(NFA, initial_state_prime, alphabet, transition_prime):
                     if set(i) == set(flatten_list):
                         transition_prime[str(current_state)][symbol] = i
 
-    print(DFA_states)
+    # print(DFA_states)
     return DFA_states
 
 
@@ -162,7 +164,7 @@ def drawAutomata(DFA_, name_file):
     }
 
     json_dfa = json.dumps(json_)
-    print(json_dfa)
+    # print(json_dfa)
 
     try:
         f=open(name_file, "w")
@@ -174,7 +176,9 @@ def drawAutomata(DFA_, name_file):
 
     finally:
         dfa_example = automata_IO.dfa_json_importer(name_file)
-        automata_IO.dfa_to_dot(dfa_example, 'dfa-output', '/mnt/c/Users/user/Desktop/Progra/Python/compiladores/')
+        automata_IO.dfa_to_dot(dfa_example, 'dfa-output', path)
+    print("Checa el DFA como una cincotupla en el archivo con el nombre dfa.json\n")
+    print("Checa la imagen del grafo, con el nombre dfa-output.dot.svg.\n")
 
     return json_dfa 
 
@@ -183,8 +187,8 @@ def checkString(DFA, string):
     current_state = DFA.initial_state
 
     for element in string:
-        print("Current state: ", current_state)
-        print("Symbol: ", element)
+        # print("Current state: ", current_state)
+        # print("Symbol: ", element)
         if DFA.transition_matrix[str(current_state)][element]:
             current_state = DFA.transition_matrix[str(current_state)][element]
         else:
@@ -201,7 +205,14 @@ def checkString(DFA, string):
     return answer                                    
                                                           
 def main():
-    readExpression('test.txt')
+    while True:
+        try:
+            file_name = input("Escribe el nombre del archivo que tiene el alfabeto y la expresion regular a analizar.\n")
+            readExpression(file_name)
+            break
+        except:
+            print("El archivo introducido no existe!\n")
+
     alphabet = ['a', 'b', 'c']
     states = ['1', '2', '3', '4', '5', '6', '7', '8']
     final_states = ['4']
@@ -215,12 +226,22 @@ def main():
         '7': {'a': [], 'b': ['8'], 'c': [], '?': []},
         '8': {'a': [], 'b': [], 'c': [], '?': ['1']}
     }
-
-    NFA = Quintuple(alphabet, states, final_states, '1', table)
-    DFA_US = nfa2dfa(NFA)
-    print(checkString(DFA_US, 'c'))
-
-    # drawAutomata(DFA_US, "dfa.json")
+    option = '0'
+    while option != '4':
+        option = input("Elija una opcion.\n1. Obtener NFA.\n2. Obtener DFA.\n3. Probar una cadena.\n4. Salir.\n")
+        if option == '1':
+            NFA = Quintuple(alphabet, states, final_states, '1', table)
+        elif option == '2':
+            NFA = Quintuple(alphabet, states, final_states, '1', table)
+            DFA_US = nfa2dfa(NFA)
+            drawAutomata(DFA_US, "dfa.json")
+        elif option == '3':
+            NFA = Quintuple(alphabet, states, final_states, '1', table)
+            DFA_US = nfa2dfa(NFA)
+            string_ = input("Escriba la cadena a probar: \n")
+            print(checkString(DFA_US, string_))
+        elif option != '4':
+            print("Por favor, elige una opcion valida!\n")
 
 
 if __name__=="__main__":
