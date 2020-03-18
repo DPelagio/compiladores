@@ -5,6 +5,12 @@
 # Luis Fernando Carrasco A01021172
 # Daniel Pelagio A01227873
 # Jose Luis 
+from PySimpleAutomata import automata_IO
+from PySimpleAutomata import DFA
+from PySimpleAutomata import NFA
+import json
+from time import sleep
+
 
 class Quintuple:
     def __init__(self, alphabet, states, final_states, initial_state, transition_matrix):
@@ -104,16 +110,22 @@ def move(NFA, initial_state_prime, alphabet, transition_prime):
             for item in flatten_list:
                 # Make a new list with the closure of each element
                 hand_list = list(set(hand_list) | set(e_closure(NFA, item)))
-
+                
             # Then flatten that new list again
             flatten_list = [item for sublist in hand_list for item in sublist]
             
             # Remove duplicate lists on the states list
             if checkList(DFA_states, flatten_list) == False:
-                DFA_states.append(flatten_list)
-            #print("DFA states: ", DFA_states)
+                if flatten_list != []:  #  checks if the list to add as a state is empty, so it is not added
+                    DFA_states.append(flatten_list)
             
-            transition_prime[str(current_state)][symbol] = flatten_list
+            if checkList(DFA_states, flatten_list) == False:  # if it is a new state, added to the transition table
+                transition_prime[str(current_state)][symbol] = flatten_list
+            else:  # else if it already exists
+                for i in DFA_states:  # check which state it is and add the state in the right order, so  there are no duplicates in different order 
+                    if set(i) == set(flatten_list):
+                        transition_prime[str(current_state)][symbol] = i
+
     print(DFA_states)
     return DFA_states
 
@@ -127,6 +139,67 @@ def checkList(DFA_states, list2):  # function that checks if a list of list has 
     return same
 
 
+def drawAutomata(DFA_, name_file):
+    transitions = []
+    for state in DFA_.states:
+        for symbol in DFA_.alphabet:
+            transitions.append([str(state), symbol, str(DFA_.transition_matrix[str(state)][symbol])])
+
+    states_strings = []
+    for i in DFA_.states:
+        states_strings.append(str(i))
+
+    final_states_strings = []
+    for i in DFA_.final_states:
+        final_states_strings.append(str(i))
+
+    json_ = {
+        "alphabet": DFA_.alphabet,
+        "states": states_strings,
+        "initial_state": str(DFA_.initial_state),
+        "accepting_states": final_states_strings,
+        "transitions": transitions
+    }
+
+    json_dfa = json.dumps(json_)
+    print(json_dfa)
+
+    try:
+        f=open(name_file, "w")
+        f.write(json_dfa)
+        f.close()
+
+    except:
+        f.close()
+
+    finally:
+        dfa_example = automata_IO.dfa_json_importer(name_file)
+        automata_IO.dfa_to_dot(dfa_example, 'dfa-output', '/mnt/c/Users/user/Desktop/Progra/Python/compiladores/')
+
+    return json_dfa 
+
+def checkString(DFA, string):
+    answer = 'Not valid string'
+    current_state = DFA.initial_state
+
+    for element in string:
+        print("Current state: ", current_state)
+        print("Symbol: ", element)
+        if DFA.transition_matrix[str(current_state)][element]:
+            current_state = DFA.transition_matrix[str(current_state)][element]
+        else:
+            for final in DFA.final_states:
+                if current_state == final:
+                    answer = 'Valid string for language'
+                    return answer
+    
+    for final in DFA.final_states:
+        if current_state == final:
+            answer = 'Valid string for language'
+            return answer
+
+    return answer                                    
+                                                          
 def main():
     readExpression('test.txt')
     alphabet = ['a', 'b', 'c']
@@ -144,12 +217,10 @@ def main():
     }
 
     NFA = Quintuple(alphabet, states, final_states, '1', table)
-    DFA = nfa2dfa(NFA)
-    print('Initial state prime = ', DFA.initial_state)
-    print('Alphabet = ', DFA.alphabet)
-    print('DFA states = ', DFA.states)
-    print('DFA transition table = ', DFA.transition_matrix)
-    print('DFA final states = ', DFA.final_states)
+    DFA_US = nfa2dfa(NFA)
+    print(checkString(DFA_US, 'c'))
+
+    # drawAutomata(DFA_US, "dfa.json")
 
 
 if __name__=="__main__":
