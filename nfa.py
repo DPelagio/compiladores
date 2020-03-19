@@ -273,10 +273,15 @@ def compileRegex(expression: str):
     return NFA(reversePolish(concatenate(expression)))
 
 def regexToNFA(expression: str, alphabet: list):
+    if not 'ϵ' in alphabet:
+        alphabet.append('ϵ')
     matrix = Thompson(reversePolish(concatenate(expression)))
     bluePill = {}
     for item in matrix:
         bluePill.setdefault(item[0], {}).setdefault(item[1], []).append(item[2])
+    
+    if not str(finalStack[-1]) in bluePill:
+        bluePill[str(finalStack[-1])] = {}
     
     for item in bluePill:
         for char in alphabet:
