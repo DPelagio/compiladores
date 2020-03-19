@@ -173,29 +173,29 @@ def union(initial, final):
     initial2 = initialStack.pop()
     final1 = finalStack.pop()
     final2 = finalStack.pop()
-    transitions.append([str(initial),'ϵ',str(initial1)])
-    transitions.append([str(initial),'ϵ',str(initial2)])
-    transitions.append([str(final1),'ϵ',str(final)])
-    transitions.append([str(final2),'ϵ',str(final)])
+    transitions.append([str(initial),'?',str(initial1)])
+    transitions.append([str(initial),'?',str(initial2)])
+    transitions.append([str(final1),'?',str(final)])
+    transitions.append([str(final2),'?',str(final)])
     initialStack.append(initial)
     finalStack.append(final)
 
 def kleene(initial, final):
     initial1 = initialStack.pop()
     final1 = finalStack.pop()
-    transitions.append([str(initial),'ϵ',str(final)])
-    transitions.append([str(initial),'ϵ',str(initial1)])
-    transitions.append([str(final1),'ϵ',str(initial1)])
-    transitions.append([str(final1),'ϵ',str(final)])
+    transitions.append([str(initial),'?',str(final)])
+    transitions.append([str(initial),'?',str(initial1)])
+    transitions.append([str(final1),'?',str(initial1)])
+    transitions.append([str(final1),'?',str(final)])
     initialStack.append(initial)
     finalStack.append(final)
 
 def posit(initial, final):
 	initial1 = initialStack.pop()
 	final1 = finalStack.pop()
-	transitions.append([str(initial),'ϵ',str(initial1)])
-	transitions.append([str(final1),'ϵ',str(initial1)])
-	transitions.append([str(final1),'ϵ',str(final)])
+	transitions.append([str(initial),'?',str(initial1)])
+	transitions.append([str(final1),'?',str(initial1)])
+	transitions.append([str(final1),'?',str(final)])
 	initialStack.append(initial)
 	finalStack.append(final)
 
@@ -283,4 +283,4 @@ def regexToNFA(expression: str, alphabet: list):
             if not char in bluePill[item]:
                 bluePill[item][char] = []
     
-    return alphabet, list(bluePill), list(map(str, finalStack)), str(initialStack.pop()), bluePill
+    return [alphabet, list(bluePill), list(map(str, finalStack)), str(initialStack.pop()), bluePill]

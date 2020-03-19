@@ -11,6 +11,7 @@ from PySimpleAutomata import NFA
 import json
 import os
 from time import sleep
+import nfa as NFA_
 
 path = os.path.dirname(os.path.abspath(__file__)) + '/'
 
@@ -34,10 +35,7 @@ def readExpression(file_name):
     alphabet_list[len(alphabet_list)-1] = alphabet_list[len(alphabet_list)-1].rstrip('\n')
     # print(alphabet_list, regex)
 
-
-def regex2nfa(alphabet, regex):
-
-    return NFA
+    return [alphabet_list, regex]
 
 
 # function (list, list, list, list, matrix)
@@ -82,12 +80,14 @@ def e_closure(NFA, state):  # function that gets the e closure method from the s
     new_set_states.append(state)  # always adds the given state as a first state
 
     for i in new_set_states:  # for that does eclosure for every state in the list, included new added elements
-        if NFA.transition_matrix[i]['?']:  # if there exists epsilon moves for that state
-            for j in NFA.transition_matrix[i]['?']:  # for each state in the list of states that the NFA's transition tables has
-                if j not in new_set_states:  # if it does not exist already in the list, it's added
-                    new_set_states.append(j)
+        if '?' in NFA.transition_matrix[i]: # Check if the state has epsion moves
+            if NFA.transition_matrix[i]['?']:  # if there exists epsilon moves for that state
+                for j in NFA.transition_matrix[i]['?']:  # for each state in the list of states that the NFA's transition tables has
+                    if j not in new_set_states:  # if it does not exist already in the list, it's added
+                        new_set_states.append(j)
 
     return new_set_states
+
 
 # Returns the DFA states and modifies the given attribute of transition prime 
 def move(NFA, initial_state_prime, alphabet, transition_prime):
@@ -182,6 +182,7 @@ def drawAutomata(DFA_, name_file):
 
     return json_dfa 
 
+
 def checkString(DFA, string):
     answer = 'Not valid string'
     current_state = DFA.initial_state
@@ -203,19 +204,45 @@ def checkString(DFA, string):
             return answer
 
     return answer                                    
-                                                          
+
+                                            
 def main():
+    alphabet = []
+    regex = ''
+    table = {}
     while True:
         try:
             file_name = input("Escribe el nombre del archivo que tiene el alfabeto y la expresion regular a analizar.\n")
-            readExpression(file_name)
+            alphabet = readExpression(file_name)[0]
+            regex = readExpression(file_name)[1]
+            print(alphabet)
+            print(regex)
             break
         except:
             print("El archivo introducido no existe!\n")
+    nfa_empty = []
+    nfa_empty = NFA_.regexToNFA(regex, alphabet)
+    final_states = nfa_empty[2]
+    states = nfa_empty[1]
+    initial_state = nfa_empty[3]
+    table = nfa_empty[4]
 
-    alphabet = ['a', 'b', 'c']
-    states = ['1', '2', '3', '4', '5', '6', '7', '8']
-    final_states = ['4']
+    for i in final_states:
+        states.append(i)
+
+    print(alphabet)
+    print(states)
+    print(final_states)
+    print(initial_state)
+    
+    table['9'] = {}
+    table['9']['a'] = []
+    table['9']['b'] = []
+    table['9']['c'] = []
+    print(table)
+    # states = ['1', '2', '3', '4', '5', '6', '7', '8']
+    # final_states = ['4']
+    '''
     table = {
         '1': {'a': [], 'b': [], 'c': [], '?': ['2', '5']}, 
         '2': {'a': ['3'], 'b': [], 'c': [], '?': []},
@@ -226,17 +253,18 @@ def main():
         '7': {'a': [], 'b': ['8'], 'c': [], '?': []},
         '8': {'a': [], 'b': [], 'c': [], '?': ['1']}
     }
+    '''
     option = '0'
     while option != '4':
         option = input("Elija una opcion.\n1. Obtener NFA.\n2. Obtener DFA.\n3. Probar una cadena.\n4. Salir.\n")
         if option == '1':
-            NFA = Quintuple(alphabet, states, final_states, '1', table)
+            NFA = Quintuple(alphabet, states, final_states, initial_state, table)
         elif option == '2':
-            NFA = Quintuple(alphabet, states, final_states, '1', table)
+            NFA = Quintuple(alphabet, states, final_states, initial_state, table)
             DFA_US = nfa2dfa(NFA)
             drawAutomata(DFA_US, "dfa.json")
         elif option == '3':
-            NFA = Quintuple(alphabet, states, final_states, '1', table)
+            NFA = Quintuple(alphabet, states, final_states, initial_state, table)
             DFA_US = nfa2dfa(NFA)
             string_ = input("Escriba la cadena a probar: \n")
             print(checkString(DFA_US, string_))
