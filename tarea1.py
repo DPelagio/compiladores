@@ -2,16 +2,19 @@
 # convertirlo en un NFA y ese NFA convertirlo
 # a un DFA y recibir un string para comprobar si
 # existe en el lenguaje definido por el regex
+
 # Luis Fernando Carrasco A01021172
 # Daniel Pelagio A01227873
-# Jose Luis 
+# José Luis García Reymundo A01063645
+
+
 from PySimpleAutomata import automata_IO
 from PySimpleAutomata import DFA
 from PySimpleAutomata import NFA
 import json
 import os
 from time import sleep
-import nfa as NFA_
+import nfa as rgx
 
 path = os.path.dirname(os.path.abspath(__file__)) + '/'
 
@@ -39,10 +42,10 @@ def readExpression(file_name):
 
 
 # function (list, list, list, list, matrix)
-# q0: 0: [q0, q1], 1: [q1, q2], ?: [q1, q2, q3]
-# q1: 0: [q0], 1: [q1, q2], ?: []
-# q2: 0: [q1], 1: [], ?: [q1, q2, q3]
-# q3: 0: [q0, q1], 1: [q1], ?: [q1, q2, q3]
+# q0: 0: [q0, q1], 1: [q1, q2], eps: [q1, q2, q3]
+# q1: 0: [q0], 1: [q1, q2], eps: []
+# q2: 0: [q1], 1: [], eps: [q1, q2, q3]
+# q3: 0: [q0, q1], 1: [q1], eps: [q1, q2, q3]
 
 
 def nfa2dfa(NFA):    
@@ -80,9 +83,9 @@ def e_closure(NFA, state):  # function that gets the e closure method from the s
     new_set_states.append(state)  # always adds the given state as a first state
 
     for i in new_set_states:  # for that does eclosure for every state in the list, included new added elements
-        if '?' in NFA.transition_matrix[i]: # Check if the state has epsion moves
-            if NFA.transition_matrix[i]['?']:  # if there exists epsilon moves for that state
-                for j in NFA.transition_matrix[i]['?']:  # for each state in the list of states that the NFA's transition tables has
+        if i in NFA.transition_matrix: # Check if the state has epsion moves
+            if NFA.transition_matrix[i]['eps']:  # if there exists epsilon moves for that state
+                for j in NFA.transition_matrix[i]['eps']:  # for each state in the list of states that the NFA's transition tables has
                     if j not in new_set_states:  # if it does not exist already in the list, it's added
                         new_set_states.append(j)
 
@@ -105,16 +108,23 @@ def move(NFA, initial_state_prime, alphabet, transition_prime):
             for state_element in current_state:
                 hand_list = list(set(hand_list) | set(NFA.transition_matrix[state_element][symbol]))
 
-            # Get the lists where you can go with the symbol, but flatten then to have a lists of strings  
-            flatten_list = [item for sublist in hand_list for item in sublist]
+            if all(isinstance(elem, list) for elem in hand_list):
+                # Get the lists where you can go with the symbol, but flatten then to have a lists of strings  
+                flatten_list = [item for sublist in hand_list for item in sublist]
+
+            else:
+                flatten_list = hand_list
 
             # For each string of that new flattened lists 
             for item in flatten_list:
                 # Make a new list with the closure of each element
                 hand_list = list(set(hand_list) | set(e_closure(NFA, item)))
-                
-            # Then flatten that new list again
-            flatten_list = [item for sublist in hand_list for item in sublist]
+            
+            if all(isinstance(elem, list) for elem in hand_list):        
+                # Then flatten that new list again
+                flatten_list = [item for sublist in hand_list for item in sublist]
+            else:
+                flatten_list = hand_list
             
             # Remove duplicate lists on the states list
             if checkList(DFA_states, flatten_list) == False:
@@ -141,6 +151,46 @@ def checkList(DFA_states, list2):  # function that checks if a list of list has 
     return same
 
 
+def drawAutomataNFA(NFA_, name_file):
+    transitions = []
+    alphabet_ = []
+    alphabet_ = NFA_.alphabet
+    alphabet_.append('eps')
+    for state in NFA_.states:
+        for symbol in alphabet_:
+            if NFA_.transition_matrix[str(state)][symbol]:
+                str_ = NFA_.transition_matrix[str(state)][symbol][0]
+            else:
+                str_ = '[]'
+            transitions.append([str(state), symbol, str_])
+
+    json_ = {
+        "alphabet": alphabet_,
+        "states": NFA_.states,
+        "initial_states": [NFA_.initial_state],
+        "accepting_states": NFA_.final_states,
+        "transitions": transitions
+    }
+
+    json_nfa = json.dumps(json_)
+
+    try:
+        f=open(name_file, "w")
+        f.write(json_nfa)
+        f.close()
+
+    except:
+        f.close()
+
+    finally:
+        nfa_example = automata_IO.nfa_json_importer(name_file)
+        automata_IO.nfa_to_dot(nfa_example, 'nfa-output', path)
+    print("Checa el NFA como una cincotupla en el archivo con el nombre nfa.json\n")
+    print("Checa la imagen del grafo, con el nombre nfa-output.dot.svg.\n")
+
+    return json_nfa 
+
+
 def drawAutomata(DFA_, name_file):
     transitions = []
     for state in DFA_.states:
@@ -164,7 +214,6 @@ def drawAutomata(DFA_, name_file):
     }
 
     json_dfa = json.dumps(json_)
-    # print(json_dfa)
 
     try:
         f=open(name_file, "w")
@@ -221,44 +270,33 @@ def main():
         except:
             print("El archivo introducido no existe!\n")
     nfa_empty = []
-    nfa_empty = NFA_.regexToNFA(regex, alphabet)
+    nfa_empty = rgx.regexToNFA(regex, alphabet)
     final_states = nfa_empty[2]
     states = nfa_empty[1]
     initial_state = nfa_empty[3]
     table = nfa_empty[4]
+    alphabet = alphabet[:-1]
 
-    for i in final_states:
-        states.append(i)
-
-    print(alphabet)
-    print(states)
-    print(final_states)
-    print(initial_state)
-    
-    table['9'] = {}
-    table['9']['a'] = []
-    table['9']['b'] = []
-    table['9']['c'] = []
-    print(table)
     # states = ['1', '2', '3', '4', '5', '6', '7', '8']
     # final_states = ['4']
     '''
     table = {
-        '1': {'a': [], 'b': [], 'c': [], '?': ['2', '5']}, 
-        '2': {'a': ['3'], 'b': [], 'c': [], '?': []},
-        '3': {'a': [], 'b': [], 'c': ['4'], '?': []}, 
-        '4': {'a': [], 'b': [], 'c': [], '?': []},
-        '5': {'a': [], 'b': [], 'c': [], '?': ['6', '7']},
-        '6': {'a': ['8'], 'b': [], 'c': [], '?': []},
-        '7': {'a': [], 'b': ['8'], 'c': [], '?': []},
-        '8': {'a': [], 'b': [], 'c': [], '?': ['1']}
+        '1': {'a': [], 'b': [], 'c': [], 'eps': ['2', '5']}, 
+        '2': {'a': ['3'], 'b': [], 'c': [], 'eps': []},
+        '3': {'a': [], 'b': [], 'c': ['4'], 'eps': []}, 
+        '4': {'a': [], 'b': [], 'c': [], 'eps': []},
+        '5': {'a': [], 'b': [], 'c': [], 'eps': ['6', '7']},
+        '6': {'a': ['8'], 'b': [], 'c': [], 'eps': []},
+        '7': {'a': [], 'b': ['8'], 'c': [], 'eps': []},
+        '8': {'a': [], 'b': [], 'c': [], 'eps': ['1']}
     }
     '''
     option = '0'
     while option != '4':
         option = input("Elija una opcion.\n1. Obtener NFA.\n2. Obtener DFA.\n3. Probar una cadena.\n4. Salir.\n")
         if option == '1':
-            NFA = Quintuple(alphabet, states, final_states, initial_state, table)
+            NFA_ = Quintuple(alphabet, states, final_states, initial_state, table)
+            drawAutomataNFA(NFA_, "nfa.json")
         elif option == '2':
             NFA = Quintuple(alphabet, states, final_states, initial_state, table)
             DFA_US = nfa2dfa(NFA)

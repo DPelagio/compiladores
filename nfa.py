@@ -44,7 +44,7 @@ class OrderedSet:
 
 CONCATENATE = '.'
 ZERO_OR_MORE = '*'
-ZERO_OR_ONE = '?'
+ZERO_OR_ONE = 'eps'
 ONE_OR_MORE = '+'
 ALTERNATE = '|'
 PAR_OPEN = '('
@@ -173,29 +173,29 @@ def union(initial, final):
     initial2 = initialStack.pop()
     final1 = finalStack.pop()
     final2 = finalStack.pop()
-    transitions.append([str(initial),'?',str(initial1)])
-    transitions.append([str(initial),'?',str(initial2)])
-    transitions.append([str(final1),'?',str(final)])
-    transitions.append([str(final2),'?',str(final)])
+    transitions.append([str(initial),'eps',str(initial1)])
+    transitions.append([str(initial),'eps',str(initial2)])
+    transitions.append([str(final1),'eps',str(final)])
+    transitions.append([str(final2),'eps',str(final)])
     initialStack.append(initial)
     finalStack.append(final)
 
 def kleene(initial, final):
     initial1 = initialStack.pop()
     final1 = finalStack.pop()
-    transitions.append([str(initial),'?',str(final)])
-    transitions.append([str(initial),'?',str(initial1)])
-    transitions.append([str(final1),'?',str(initial1)])
-    transitions.append([str(final1),'?',str(final)])
+    transitions.append([str(initial),'eps',str(final)])
+    transitions.append([str(initial),'eps',str(initial1)])
+    transitions.append([str(final1),'eps',str(initial1)])
+    transitions.append([str(final1),'eps',str(final)])
     initialStack.append(initial)
     finalStack.append(final)
 
 def posit(initial, final):
 	initial1 = initialStack.pop()
 	final1 = finalStack.pop()
-	transitions.append([str(initial),'?',str(initial1)])
-	transitions.append([str(final1),'?',str(initial1)])
-	transitions.append([str(final1),'?',str(final)])
+	transitions.append([str(initial),'eps',str(initial1)])
+	transitions.append([str(final1),'eps',str(initial1)])
+	transitions.append([str(final1),'eps',str(final)])
 	initialStack.append(initial)
 	finalStack.append(final)
 
@@ -273,8 +273,8 @@ def compileRegex(expression: str):
     return NFA(reversePolish(concatenate(expression)))
 
 def regexToNFA(expression: str, alphabet: list):
-    if not 'ϵ' in alphabet:
-        alphabet.append('ϵ')
+    if not 'eps' in alphabet:
+        alphabet.append('eps')
     matrix = Thompson(reversePolish(concatenate(expression)))
     bluePill = {}
     for item in matrix:
