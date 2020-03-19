@@ -273,5 +273,9 @@ def compileRegex(expression: str):
     return NFA(reversePolish(concatenate(expression)))
 
 def regexToNFA(expression: str, alphabet: list):
-    matrix = Thompson(reversePolish(concatenate("(a|b)*c")))
-    return alphabet, 'states', list(map(str, finalStack)), str(initialStack.pop()), matrix
+    matrix = Thompson(reversePolish(concatenate(expression)))
+    bluePill = {}
+    for item in matrix:
+        bluePill.setdefault(item[0], {}).setdefault(item[1], []).append(item[2])
+    
+    return alphabet, list(bluePill), list(map(str, finalStack)), str(initialStack.pop()), bluePill
