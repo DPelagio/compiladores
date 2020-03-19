@@ -278,4 +278,9 @@ def regexToNFA(expression: str, alphabet: list):
     for item in matrix:
         bluePill.setdefault(item[0], {}).setdefault(item[1], []).append(item[2])
     
+    for item in bluePill:
+        for char in alphabet:
+            if not char in bluePill[item]:
+                bluePill[item][char] = []
+    
     return alphabet, list(bluePill), list(map(str, finalStack)), str(initialStack.pop()), bluePill
