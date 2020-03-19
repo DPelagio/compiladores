@@ -14,7 +14,7 @@ class CharNode(Node):
 class OperatorNode(Node):
     """sub clase nodo operador"""
 
-class EOFNode(Node):
+class EOLNode(Node):
     """sub clase nodo fin"""
 
 class OrderedSet:
@@ -43,11 +43,11 @@ ZERO_OR_MORE = '*'
 ZERO_OR_ONE = '?'
 ONE_OR_MORE = '+'
 ALTERNATE = '|'
-START = '('
-END = ')'
+PAR_OPEN = '('
+PAR_CLOSE = ')'
 RIGHT = 0
 LEFT = 1
-EOF = EOFNode(out=[], value='EOF')
+EOL = EOLNode(out=[], value='EOL')
 
 Operator = collections.namedtuple(
     'Operator',
@@ -79,7 +79,7 @@ def popUntilGroupStart(ops: list) -> list:
     out = []
     while True:
         op = ops.pop()
-        if op == START:
+        if op == PAR_OPEN:
             break
         out.append(op)
     return out
@@ -88,10 +88,10 @@ def reversePolish(expression: str) -> str:
     output = []
     operators = []
     for char in expression:
-        if char == START:
+        if char == PAR_OPEN:
             operators.append(char)
             continue
-        elif char == END:
+        elif char == PAR_CLOSE:
             output.extend(popUntilGroupStart(operators))
             continue
         elif char in Operators:
@@ -106,13 +106,13 @@ def concatenate(expression: str, join=CONCATENATE) -> str:
     output = []
     atoms_count = 0
     for char in expression:
-        if char == START:
+        if char == PAR_OPEN:
             if atoms_count:
                 output.append(join)
             output.append(char)
             atoms_count = 0
             continue
-        elif char in (END, ALTERNATE):
+        elif char in (PAR_CLOSE, ALTERNATE):
             output.append(char)
             atoms_count = 0
             continue
@@ -134,7 +134,7 @@ def combine(origin_state: Node, target_state, visited=None):
     
     visited.add(origin_state)
     for i, state in enumerate(origin_state.out):
-        if state is EOF:
+        if state is EOL:
             origin_state.out[i] = target_state
         else:
             combine(state, target_state, visited)
@@ -142,8 +142,8 @@ def combine(origin_state: Node, target_state, visited=None):
 def NFA(expression):
     states = []
     for char in expression:
-        if char not in Operators:
-            states.append(CharNode(out=[EOF], value=char))
+        if char not in Operators: # * . |
+            states.append(CharNode(out=[EOL], value=char))
             continue
         elif char == CONCATENATE:
             state_b = states.pop()
@@ -158,7 +158,7 @@ def NFA(expression):
             continue
         elif char == ZERO_OR_MORE:
             state = states.pop()
-            new_state = OperatorNode(out=[state, EOF], value=char)
+            new_state = OperatorNode(out=[state, EOL], value=char)
             combine(state, new_state)
             states.append(new_state)
             continue
@@ -168,13 +168,13 @@ def compileRegex(expression: str):
     return NFA(reversePolish(concatenate(expression)))
 
 def isMatch(states: OrderedSet) -> bool:
-    return EOF in states
+    return EOL in states
 
 def putState(state, states):
     if state in states:
         return
-    elif state is EOF:
-        states.put(EOF)
+    elif state is EOL:
+        states.put(EOL)
         return
     elif isinstance(state, CharNode):
         states.put(state)
@@ -186,7 +186,21 @@ def validator(state, value) -> bool:
     curr_list = OrderedSet()
     next_list = OrderedSet()
     putState(state, curr_list)
-
+    print(curr_list)
+    print("***")
+    all_states = {}
+    _s = 0
+    for curr_state in curr_list:
+        print("current", curr_state)
+        all_states[_s] = {
+            curr_state.value: _s+1
+        }
+        _s += 1
+        # for next_state in curr_state.out:
+        #     print("next", next_state)
+    print(all_states)
+    print("***")
+    
     for char in value:
         if not curr_list:
             break
@@ -199,7 +213,8 @@ def validator(state, value) -> bool:
         next_list.clear()
     return isMatch(curr_list)
 
-
-compiled = compileRegex("a(b|c)*d")
-print(compiled)
-print(validator(compiled, 'ad'))
+#(0|1|2|3)*abc
+_r = reversePolish(concatenate("(a|b)*c"))
+print(_r)
+compiled = compileRegex("(a|b)*c")
+print(validator(compiled, 'abc'))
