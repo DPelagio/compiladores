@@ -1,5 +1,9 @@
 import collections
 
+transitions=[]
+initialStack=[]
+finalStack=[]
+
 class Node:
     def __init__(self, out, value):
         self.out = out
@@ -164,8 +168,74 @@ def NFA(expression):
             continue
     return states[0]
 
-def compileRegex(expression: str):
-    return NFA(reversePolish(concatenate(expression)))
+def union(initial, final):
+    initial1 = initialStack.pop()
+    initial2 = initialStack.pop()
+    final1 = finalStack.pop()
+    final2 = finalStack.pop()
+    transitions.append([str(initial),'ϵ',str(initial1)])
+    transitions.append([str(initial),'ϵ',str(initial2)])
+    transitions.append([str(final1),'ϵ',str(final)])
+    transitions.append([str(final2),'ϵ',str(final)])
+    initialStack.append(initial)
+    finalStack.append(final)
+
+def kleene(initial, final):
+    initial1 = initialStack.pop()
+    final1 = finalStack.pop()
+    transitions.append([str(initial),'ϵ',str(final)])
+    transitions.append([str(initial),'ϵ',str(initial1)])
+    transitions.append([str(final1),'ϵ',str(initial1)])
+    transitions.append([str(final1),'ϵ',str(final)])
+    initialStack.append(initial)
+    finalStack.append(final)
+
+def posit(initial, final):
+	initial1 = initialStack.pop()
+	final1 = finalStack.pop()
+	transitions.append([str(initial),'ϵ',str(initial1)])
+	transitions.append([str(final1),'ϵ',str(initial1)])
+	transitions.append([str(final1),'ϵ',str(final)])
+	initialStack.append(initial)
+	finalStack.append(final)
+
+def concatenation():
+    initial1 = initialStack.pop()
+    initial2 = initialStack.pop()
+    final1 = finalStack.pop()
+    final2 = finalStack.pop()
+    for i in transitions:
+        if i[0] == str(initial1):
+            i[0] = str(final2)
+    
+    initialStack.append(initial2)
+    finalStack.append(final1)
+
+def Thompson(expression):
+    count = 0
+    count2 = 1
+    for char in expression:
+        if char not in Operators:
+            transitions.append([str(count), char,str(count2)])
+            initialStack.append(count)
+            finalStack.append(count2)
+            count = count + 2
+            count2 = count2 + 2
+        elif char == ZERO_OR_MORE:
+            kleene(count, count2)
+            count = count + 2
+            count2 = count2 + 2
+        elif char == ALTERNATE:
+            union(count, count2)
+            count = count + 2
+            count2 = count2 + 2
+        elif char == ONE_OR_MORE:
+            posit(count, count2)
+            count = count + 2
+            count2 = count2 + 2
+        elif char == CONCATENATE:
+            concatenation()
+    return transitions
 
 def isMatch(states: OrderedSet) -> bool:
     return EOL in states
@@ -186,20 +256,6 @@ def validator(state, value) -> bool:
     curr_list = OrderedSet()
     next_list = OrderedSet()
     putState(state, curr_list)
-    print(curr_list)
-    print("***")
-    all_states = {}
-    _s = 0
-    for curr_state in curr_list:
-        print("current", curr_state)
-        all_states[_s] = {
-            curr_state.value: _s+1
-        }
-        _s += 1
-        # for next_state in curr_state.out:
-        #     print("next", next_state)
-    print(all_states)
-    print("***")
     
     for char in value:
         if not curr_list:
@@ -213,8 +269,9 @@ def validator(state, value) -> bool:
         next_list.clear()
     return isMatch(curr_list)
 
-#(0|1|2|3)*abc
-_r = reversePolish(concatenate("(a|b)*c"))
-print(_r)
-compiled = compileRegex("(a|b)*c")
-print(validator(compiled, 'abc'))
+def compileRegex(expression: str):
+    return NFA(reversePolish(concatenate(expression)))
+
+def regexToNFA(expression: str, alphabet: list):
+    matrix = Thompson(reversePolish(concatenate("(a|b)*c")))
+    return alphabet, 'states', list(map(str, finalStack)), str(initialStack.pop()), matrix
