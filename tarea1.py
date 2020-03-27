@@ -154,7 +154,7 @@ def checkList(DFA_states, list2):  # function that checks if a list of list has 
 def drawAutomataNFA(NFA_, name_file):
     transitions = []
     alphabet_ = []
-    alphabet_ = NFA_.alphabet
+    alphabet_ = NFA_.alphabet.copy()
     alphabet_.append('eps')
     for state in NFA_.states:
         for symbol in alphabet_:
@@ -163,13 +163,10 @@ def drawAutomataNFA(NFA_, name_file):
                 cont = 0
                 for trans in NFA_.transition_matrix[str(state)][symbol]:
                     str_ = ''
-                    print(NFA_.transition_matrix[str(state)][symbol][cont])
+                    # print(NFA_.transition_matrix[str(state)][symbol][cont])
                     str_ = NFA_.transition_matrix[str(state)][symbol][cont]
                     transitions.append([str(state), symbol, str_])
                     cont+=1
-            else:
-                str_ = '[]'
-                transitions.append([str(state), symbol, str_])
 
     json_ = {
         "alphabet": alphabet_,
@@ -203,7 +200,8 @@ def drawAutomata(DFA_, name_file):
     transitions = []
     for state in DFA_.states:
         for symbol in DFA_.alphabet:
-            transitions.append([str(state), symbol, str(DFA_.transition_matrix[str(state)][symbol])])
+            if str(DFA_.transition_matrix[str(state)][symbol]) != '[]':
+                transitions.append([str(state), symbol, str(DFA_.transition_matrix[str(state)][symbol])])
 
     states_strings = []
     for i in DFA_.states:
@@ -299,11 +297,11 @@ def main():
         '8': {'a': [], 'b': [], 'c': [], 'eps': ['1']}
     }
     '''
+    NFA_ = Quintuple(alphabet, states, final_states, initial_state, table)
     option = '0'
     while option != '4':
         option = input("Elija una opcion.\n1. Obtener NFA.\n2. Obtener DFA.\n3. Probar una cadena.\n4. Salir.\n")
         if option == '1':
-            NFA_ = Quintuple(alphabet, states, final_states, initial_state, table)
             print(NFA_.alphabet)
             print(NFA_.states)
             print(NFA_.final_states)
@@ -311,12 +309,11 @@ def main():
             print(NFA_.transition_matrix)
             drawAutomataNFA(NFA_, "nfa.json")
         elif option == '2':
-            NFA = Quintuple(alphabet[:-1], states, final_states, initial_state, table)
-            DFA_US = nfa2dfa(NFA)
+            print(alphabet)
+            DFA_US = nfa2dfa(NFA_)
             drawAutomata(DFA_US, "dfa.json")
         elif option == '3':
-            NFA = Quintuple(alphabet, states, final_states, initial_state, table)
-            DFA_US = nfa2dfa(NFA)
+            DFA_US = nfa2dfa(NFA_)
             string_ = input("Escriba la cadena a probar: \n")
             print(checkString(DFA_US, string_))
         elif option != '4':
