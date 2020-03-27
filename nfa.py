@@ -44,7 +44,7 @@ class OrderedSet:
 
 CONCATENATE = '.'
 ZERO_OR_MORE = '*'
-ZERO_OR_ONE = 'eps'
+ZERO_OR_ONE = '?'
 ONE_OR_MORE = '+'
 ALTERNATE = '|'
 PAR_OPEN = '('

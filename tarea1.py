@@ -159,10 +159,17 @@ def drawAutomataNFA(NFA_, name_file):
     for state in NFA_.states:
         for symbol in alphabet_:
             if NFA_.transition_matrix[str(state)][symbol]:
-                str_ = NFA_.transition_matrix[str(state)][symbol][0]
+                print(NFA_.transition_matrix[str(state)][symbol])
+                cont = 0
+                for trans in NFA_.transition_matrix[str(state)][symbol]:
+                    str_ = ''
+                    print(NFA_.transition_matrix[str(state)][symbol][cont])
+                    str_ = NFA_.transition_matrix[str(state)][symbol][cont]
+                    transitions.append([str(state), symbol, str_])
+                    cont+=1
             else:
                 str_ = '[]'
-            transitions.append([str(state), symbol, str_])
+                transitions.append([str(state), symbol, str_])
 
     json_ = {
         "alphabet": alphabet_,
@@ -185,6 +192,7 @@ def drawAutomataNFA(NFA_, name_file):
     finally:
         nfa_example = automata_IO.nfa_json_importer(name_file)
         automata_IO.nfa_to_dot(nfa_example, 'nfa-output', path)
+        print(json_nfa)
     print("Checa el NFA como una cincotupla en el archivo con el nombre nfa.json\n")
     print("Checa la imagen del grafo, con el nombre nfa-output.dot.svg.\n")
 
@@ -296,9 +304,14 @@ def main():
         option = input("Elija una opcion.\n1. Obtener NFA.\n2. Obtener DFA.\n3. Probar una cadena.\n4. Salir.\n")
         if option == '1':
             NFA_ = Quintuple(alphabet, states, final_states, initial_state, table)
+            print(NFA_.alphabet)
+            print(NFA_.states)
+            print(NFA_.final_states)
+            print(NFA_.initial_state)
+            print(NFA_.transition_matrix)
             drawAutomataNFA(NFA_, "nfa.json")
         elif option == '2':
-            NFA = Quintuple(alphabet, states, final_states, initial_state, table)
+            NFA = Quintuple(alphabet[:-1], states, final_states, initial_state, table)
             DFA_US = nfa2dfa(NFA)
             drawAutomata(DFA_US, "dfa.json")
         elif option == '3':
