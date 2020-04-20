@@ -27,18 +27,33 @@ class Quintuple:
         self.transition_matrix = transition_matrix
 
 
+# This functions reads a file with the regex, and will return a list with lists of 3 elements (regex, alphabet and tokens)
 def readExpression(file_name):
-    f=open(file_name, "r")
+    pth = path + file_name
+    f=open(pth, "r")
+    rules = []
 
     if(f.mode == 'r'):
-        alphabet = f.readline()
-        regex = f.readline()
+        listLines = f.readlines()
+        print(listLines)
+        cont = 0
+        for line in listLines:
+            if cont == 0:
+                alphabet = line.strip()
+                alphabet_list = alphabet.split(" ")
+                alphabet_list[len(alphabet_list)-1] = alphabet_list[len(alphabet_list)-1].rstrip('\n')
+                cont += 1
+            elif cont == 1:
+                regex = line.strip()
+                regex = regex.rstrip('\n')
+                cont += 1
+            elif cont == 2:
+                token = line.strip()
+                token = token.rstrip('\n')
+                cont = 0
+                rules.append([alphabet_list, regex, token])
 
-    alphabet_list = alphabet.split(" ")
-    alphabet_list[len(alphabet_list)-1] = alphabet_list[len(alphabet_list)-1].rstrip('\n')
-    # print(alphabet_list, regex)
-
-    return [alphabet_list, regex]
+    return rules
 
 
 # function (list, list, list, list, matrix)
@@ -106,7 +121,11 @@ def move(NFA, initial_state_prime, alphabet, transition_prime):
             # print('all states', DFA_states)
             hand_list = []
             for state_element in current_state:
-                hand_list = list(set(hand_list) | set(NFA.transition_matrix[state_element][symbol]))
+                
+                if state_element in NFA.transition_matrix:
+                    # Check if the symbol of the alphabet exists in the transition matrix
+                    if symbol in NFA.transition_matrix[state_element]:
+                        hand_list = list(set(hand_list) | set(NFA.transition_matrix[state_element][symbol]))
 
             if all(isinstance(elem, list) for elem in hand_list):
                 # Get the lists where you can go with the symbol, but flatten then to have a lists of strings  
@@ -158,15 +177,20 @@ def drawAutomataNFA(NFA_, name_file):
     alphabet_.append('eps')
     for state in NFA_.states:
         for symbol in alphabet_:
-            if NFA_.transition_matrix[str(state)][symbol]:
-                print(NFA_.transition_matrix[str(state)][symbol])
-                cont = 0
-                for trans in NFA_.transition_matrix[str(state)][symbol]:
-                    str_ = ''
-                    # print(NFA_.transition_matrix[str(state)][symbol][cont])
-                    str_ = NFA_.transition_matrix[str(state)][symbol][cont]
-                    transitions.append([str(state), symbol, str_])
-                    cont+=1
+
+            # Check first if the key exists (symbol in the alphabet)
+            if symbol in NFA_.transition_matrix[str(state)]:
+
+                # Then check if there is anything in the list 
+                if NFA_.transition_matrix[str(state)][symbol]:
+                    print(NFA_.transition_matrix[str(state)][symbol])
+                    cont = 0
+                    for trans in NFA_.transition_matrix[str(state)][symbol]:
+                        str_ = ''
+                        # print(NFA_.transition_matrix[str(state)][symbol][cont])
+                        str_ = NFA_.transition_matrix[str(state)][symbol][cont]
+                        transitions.append([str(state), symbol, str_])
+                        cont+=1
 
     json_ = {
         "alphabet": alphabet_,
@@ -238,28 +262,57 @@ def drawAutomata(DFA_, name_file):
     return json_dfa 
 
 
-def checkString(DFA, string):
-    answer = 'Not valid string'
+def checkString(DFA, string, NFA_list):
+    answer = 'invalid'
     current_state = DFA.initial_state
 
     for element in string:
-        # print("Current state: ", current_state)
-        # print("Symbol: ", element)
-        if DFA.transition_matrix[str(current_state)][element]:
-            current_state = DFA.transition_matrix[str(current_state)][element]
+        print("current: ", current_state)
+        print("element: ", element)
+        # Check if the symbol exists, so dict doesnt break 
+        if element in DFA.transition_matrix[str(current_state)]:
+            if DFA.transition_matrix[str(current_state)][element]:
+                current_state = DFA.transition_matrix[str(current_state)][element]
+            else:
+                current_state = 'invalid'
+                answer = 'invalid_syntax'
+                break
+
         else:
-            for final in DFA.final_states:
-                if current_state == final:
-                    answer = 'Valid string for language'
-                    return answer
+            current_state = 'invalid'
+            answer = 'symbol_not_recognized: "' + element + '"'
+            break
     
     for final in DFA.final_states:
         if current_state == final:
-            answer = 'Valid string for language'
+            answer =checkTokenType(NFA_list, current_state)
             return answer
 
     return answer                                    
 
+
+def checkTokenType(NFA_list, state_list):
+    for state in state_list:
+        tkn = []
+        tkn = str(state).split('_')
+        if state in NFA_list[tkn[1]].final_states:
+            return tkn[1]
+    
+    return 'invalid'
+
+
+def checkInput(entrada, DFA, NFA_list):
+    f=open(path+'programa.o.txt', "w")
+    
+    for elem in entrada:
+        if(f.mode == 'w'):
+            if elem == '':
+                f.write('\n')
+            else:
+                token = checkString(DFA, elem, NFA_list)
+                f.write(token + ' ')
+
+    f.close()
                                             
 def main():
     alphabet = []
@@ -268,56 +321,83 @@ def main():
     while True:
         try:
             file_name = input("Escribe el nombre del archivo que tiene el alfabeto y la expresion regular a analizar.\n")
-            alphabet = readExpression(file_name)[0]
-            regex = readExpression(file_name)[1]
-            print(alphabet)
-            print(regex)
+            rules = readExpression(file_name)
+            # alphabet = readExpression(file_name)[0]
+            # regex = readExpression(file_name)[1]
             break
+
         except:
             print("El archivo introducido no existe!\n")
-    nfa_empty = []
-    nfa_empty = rgx.regexToNFA(regex, alphabet)
-    final_states = nfa_empty[2]
-    states = nfa_empty[1]
-    initial_state = nfa_empty[3]
-    table = nfa_empty[4]
-    alphabet = alphabet[:-1]
 
-    # states = ['1', '2', '3', '4', '5', '6', '7', '8']
-    # final_states = ['4']
-    '''
-    table = {
-        '1': {'a': [], 'b': [], 'c': [], 'eps': ['2', '5']}, 
-        '2': {'a': ['3'], 'b': [], 'c': [], 'eps': []},
-        '3': {'a': [], 'b': [], 'c': ['4'], 'eps': []}, 
-        '4': {'a': [], 'b': [], 'c': [], 'eps': []},
-        '5': {'a': [], 'b': [], 'c': [], 'eps': ['6', '7']},
-        '6': {'a': ['8'], 'b': [], 'c': [], 'eps': []},
-        '7': {'a': [], 'b': ['8'], 'c': [], 'eps': []},
-        '8': {'a': [], 'b': [], 'c': [], 'eps': ['1']}
-    }
-    '''
-    NFA_ = Quintuple(alphabet, states, final_states, initial_state, table)
-    option = '0'
-    while option != '4':
-        option = input("Elija una opcion.\n1. Obtener NFA.\n2. Obtener DFA.\n3. Probar una cadena.\n4. Salir.\n")
-        if option == '1':
-            print(NFA_.alphabet)
-            print(NFA_.states)
-            print(NFA_.final_states)
-            print(NFA_.initial_state)
-            print(NFA_.transition_matrix)
-            drawAutomataNFA(NFA_, "nfa.json")
-        elif option == '2':
-            print(alphabet)
-            DFA_US = nfa2dfa(NFA_)
-            drawAutomata(DFA_US, "dfa.json")
-        elif option == '3':
-            DFA_US = nfa2dfa(NFA_)
-            string_ = input("Escriba la cadena a probar: \n")
-            print(checkString(DFA_US, string_))
-        elif option != '4':
-            print("Por favor, elige una opcion valida!\n")
+    NFA_list = {} # A dict where each key is the token type, and the value is the Quintuple
+
+    # For each rule in the rules list, create a Quintuple object and append it to the list
+    for rule in rules:
+        regex = rule[1]
+        alphabet = rule[0]
+        token = rule[2]
+        nfa_temp = []
+        nfa_temp = rgx.regexToNFA(regex, alphabet, token)
+        temp = None
+        print("CACA: ", nfa_temp[3])
+        temp = Quintuple(alphabet[:-1], nfa_temp[1], nfa_temp[2], nfa_temp[3], nfa_temp[4])
+        NFA_list[token] = temp
+
+    # print(NFA_list[0][0].transition_matrix)
+    # print(NFA_list[1][0].transition_matrix)
+
+    merged_alphabets = set()
+    merged_states = []
+    merged_dict = {}
+    merged_final_states = []
+    merged_initial = []
+
+    for token in NFA_list:
+        merged_dict.update(NFA_list[token].transition_matrix)
+        for symbol in NFA_list[token].alphabet:
+            merged_alphabets.add(symbol)
+        
+        for state in NFA_list[token].states:
+            merged_states.append(state)
+
+        for final in NFA_list[token].final_states:
+            merged_final_states.append(final)
+
+        print("SDFSDF: ", NFA_list[token].initial_state)
+        merged_initial.append(NFA_list[token].initial_state)
+
+    merged_states.append('INIT')
+    merged_dict['INIT'] = {}
+    merged_dict['INIT']['eps'] = merged_initial
+
+    merged_nfa = Quintuple(list(merged_alphabets), merged_states, merged_final_states, 'INIT', merged_dict)
+    merged_dfa = nfa2dfa(merged_nfa)
+
+    # drawAutomata(merged_dfa, "dfa.json")
+    print(checkString(merged_dfa, "1001", NFA_list))
+    # drawAutomataNFA(merged_nfa, "nfa.json")
+
+    f=open(path+'programa.txt', "r")
+
+    if(f.mode == 'r'):
+        data = f.readlines()
+    
+    f.close()
+
+    str_data = []
+    temp = []
+    for i in data:
+        for x in i.split(' '):
+            temp = []
+            if '\n' in x:
+                temp = x.split('\n')
+                str_data.append(temp[0])
+                str_data.append(temp[1])
+            else:
+                str_data.append(x)
+
+    checkInput(str_data, merged_dfa, NFA_list)
+    print(str_data)
 
 
 if __name__=="__main__":

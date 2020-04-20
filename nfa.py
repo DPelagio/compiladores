@@ -214,6 +214,7 @@ def concatenation():
 def Thompson(expression):
     count = 0
     count2 = 1
+
     for char in expression:
         if char not in Operators:
             transitions.append([str(count), char,str(count2)])
@@ -272,20 +273,30 @@ def validator(state, value) -> bool:
 def compileRegex(expression: str):
     return NFA(reversePolish(concatenate(expression)))
 
-def regexToNFA(expression: str, alphabet: list):
+def regexToNFA(expression: str, alphabet: list, token:str):
+    print("loooool", expression, alphabet, token)
     if not 'eps' in alphabet:
         alphabet.append('eps')
+
+    # Clear the transition matrix in case there are many expressions being transformed 
+    initialStack.clear()
+    transitions.clear()
+    finalStack.clear()
     matrix = Thompson(reversePolish(concatenate(expression)))
+
     bluePill = {}
     for item in matrix:
-        bluePill.setdefault(item[0], {}).setdefault(item[1], []).append(item[2])
+        initial = item[0] + '_' + token
+        destination = item[2] + '_' + token
+        bluePill.setdefault(initial, {}).setdefault(item[1], []).append(destination)
     
     if not str(finalStack[-1]) in bluePill:
-        bluePill[str(finalStack[-1])] = {}
+        bluePill[str(finalStack[-1]) + '_' + token] = {}
     
     for item in bluePill:
         for char in alphabet:
             if not char in bluePill[item]:
                 bluePill[item][char] = []
-    
-    return [alphabet, list(bluePill), list(map(str, finalStack)), str(initialStack.pop()), bluePill]
+
+    # print(alphabet, list(bluePill), [str(x) + '_' + token for x in finalStack], str(initialStack[0]) + '_' + token, bluePill)
+    return [alphabet, list(bluePill), [str(x) + '_' + token for x in finalStack], str(initialStack[0]) + '_' + token, bluePill]
