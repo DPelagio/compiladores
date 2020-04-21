@@ -81,6 +81,7 @@ def popGreaterThan(ops: list, op: str) -> list:
 
 def popUntilGroupStart(ops: list) -> list:
     out = []
+    print("OPS: ", ops)
     while True:
         op = ops.pop()
         if op == PAR_OPEN:
@@ -89,6 +90,7 @@ def popUntilGroupStart(ops: list) -> list:
     return out
 
 def reversePolish(expression: str) -> str:
+    print("Normal= ", expression)
     output = []
     operators = []
     for char in expression:
@@ -104,6 +106,7 @@ def reversePolish(expression: str) -> str:
             continue
         output.append(char)
     output.extend(reversed(operators))
+    print("POSTFIX= ", ''.join(output))
     return ''.join(output)
 
 def concatenate(expression: str, join=CONCATENATE) -> str:
@@ -116,7 +119,11 @@ def concatenate(expression: str, join=CONCATENATE) -> str:
             output.append(char)
             atoms_count = 0
             continue
-        elif char in (PAR_CLOSE, ALTERNATE):
+        elif char == PAR_CLOSE:
+            output.append(char)
+            # atoms_count = 0
+            continue
+        elif char == ALTERNATE:
             output.append(char)
             atoms_count = 0
             continue
@@ -200,6 +207,8 @@ def posit(initial, final):
 	finalStack.append(final)
 
 def concatenation():
+    print("KKK: ",initialStack)
+    print("finak: ",finalStack)
     initial1 = initialStack.pop()
     initial2 = initialStack.pop()
     final1 = finalStack.pop()
@@ -279,7 +288,7 @@ def regexToNFA(expression: str, alphabet: list, token:str):
         alphabet.append('eps')
 
     # Clear the transition matrix in case there are many expressions being transformed 
-    initialStack.clear()
+    # initialStack.clear()
     transitions.clear()
     finalStack.clear()
     matrix = Thompson(reversePolish(concatenate(expression)))
@@ -297,6 +306,6 @@ def regexToNFA(expression: str, alphabet: list, token:str):
         for char in alphabet:
             if not char in bluePill[item]:
                 bluePill[item][char] = []
-
+    print(initialStack)
     # print(alphabet, list(bluePill), [str(x) + '_' + token for x in finalStack], str(initialStack[0]) + '_' + token, bluePill)
-    return [alphabet, list(bluePill), [str(x) + '_' + token for x in finalStack], str(initialStack[0]) + '_' + token, bluePill]
+    return [alphabet, list(bluePill), [str(x) + '_' + token for x in finalStack], str(initialStack.pop()) + '_' + token, bluePill]

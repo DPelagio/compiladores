@@ -1,3 +1,4 @@
-float variable 
-variable variable 
-invalid_syntax 
+float float invalid_syntax float invalid 
+variable variable invalid_syntax invalid_syntax 
+int int invalid int 
+science invalid_syntax science invalid_syntax 
