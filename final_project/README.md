@@ -2,6 +2,8 @@
 
 El objetivo del proyecto es generar a través de reglas gramaticales un intérprete, en nuestro caso, de un lenguaje definido por nosotros y ser ejecutado por cualquier equipo de cómputo.
 
+Nuestro lenguaje es capaz de interpretar sentencias de control como: while, for; de condición: if, if-else, así como asignación de valores a variables y ejecución de funciones, similar a como se haría en otro de lenguaje de programación.
+
 ## Desarrollo
 
 Nuestro proyecto fue desarrollado usando ANTLR (ANother Tool for Language Recognition), usando como base el lenguaje de programación Python para usar el Lexer y Parser que nos proporciona ANTLR para posteriormente manipular el árbol de sintaxis.
