@@ -2,7 +2,7 @@
 
 El objetivo del proyecto es generar a través de reglas gramaticales un intérprete, en nuestro caso, de un lenguaje definido por nosotros y ser ejecutado por cualquier equipo de cómputo.
 
-Nuestro lenguaje es capaz de interpretar sentencias de control como: while, for; de condición: if, if-else, así como asignación de valores a variables y ejecución de funciones, similar a como se haría en otro de lenguaje de programación.
+Nuestro lenguaje llamado Polite Language, es capaz de interpretar sentencias de control como: while; de condición: if, if-else, así como asignación de valores a variables y ejecución de funciones, similar a como se haría en otros de lenguaje de programación.
 
 ## Desarrollo
 
