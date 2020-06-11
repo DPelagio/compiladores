@@ -1,80 +1,49 @@
-
 grammar PL;
 
-options { tokenVocab=PLLexer; }
-
-script : GREETING body END;
-body : (command | comment)*;
-command : assign SEMI
-        | if_command
-        | while_command
-        | break_command SEMI
-        | print_command SEMI
-        | function_command
-        | function_call SEMI
-        | return_command SEMI;
-if_command : IF ARROW value COLUMN CURLY_L body CURLY_R (elseBody=else_command)?    # IfCommandBody
-           | IF ARROW value COLUMN command (elseBody=else_command)?                 # IfCommandSingle;
-else_command : ELSE CURLY_L elseBody=body CURLY_R                                      # ElseCommandBody
-             | ELSE elseLine=command                                                   # ElseCommandSingle;
-while_command : WHILE BRACE_L value BRACE_R CURLY_L body CURLY_R                       # WhileCommandBody
-              | WHILE BRACE_L value BRACE_R command                                    # WhileCommandSingle;
-break_command : BREAK                                                                  # BreakCommand;
-print_command : PRINT BRACE_L (printParams=value)? BRACE_R                             # PrintCommand;
-function_command : DEF funcName=NAME BRACE_L VARIABLE* BRACE_R CURLY_L body CURLY_R    # FunctionCommand;
-function_call : funcName=NAME BRACE_L value* BRACE_R                                   # FunctionCall;
-return_command : RETURN (value)?                                                       # ReturnCommand;
-comment : COMMENT;
-assign : SAVE value IN VARIABLE;
+program : 'Dear Program,' body 'Thank you.';
+body : (ctrl_statement)*;
+ctrl_statement : assign 'please'
+        | if_statement
+        | while_statement
+        | break_statement 'please'
+        | print_statement 'please'
+        | function_statement
+        | function_call 'please'
+        | return_statement 'please' ;
+        
+if_statement : IF '->' expr ':' '{' body '}' (elseBody=else_statement)?;
+else_statement : ELSE '{' elseBody=body '}';
+while_statement : WHILE '->' expr ':' '{' body '}';
+break_statement : BREAK;
+print_statement : 'say' '->' (printParams=expr)? ;
+function_statement : DEF funcName=NAME '=' ( '(' VARIABLE* ')' '=>' )? '{' body '}';
+function_call : 'call' funcName=NAME '(' expr* ')';
+return_statement : RETURN (expr)?;
+assign : 'save' expr 'in' VARIABLE;
 
 // The order of the following matters - operator priority:
-value : unaryMin=SUBTRACT right=value
-      | unaryNot=EXCL right=value
+expr : unaryMin='-' right=expr
+      | unaryNot='!' right=expr
       | funcCall=function_call
-      | BRACE_L bracedValue=value BRACE_R
-      | left=value cmp=(COMPARE_EQ | COMPARE_NE | COMPARE_G | COMPARE_GE | COMPARE_L | COMPARE_LE) right=value
-      | left=value mul=(MULTIPLY | DIVIDE) right=value
-      | left=value add=(ADD | SUBTRACT) right=value
+      | '(' bracedExpr=expr ')'
+      | left=expr cmp=('==' | '!=' | '>' | '>=' | '<' | '<=') right=expr
+      | left=expr mul=('*' | '/') right=expr
+      | left=expr add=('+' | '-') right=expr
       | VARIABLE
       | STR
       | NUMBER;
 
-COLUMN: ':';
-ARROW: '->';
-GREETING: 'Dear Program,';
-IN: 'in';
-SAVE: 'save';
-END: 'Thank you.';
-EQUAL: '=';
-ADD: '+';
-SUBTRACT: '-';
-MULTIPLY: '*';
-DIVIDE: '/';
-SEMI: ';';
-BRACE_L: '(';
-BRACE_R: ')';
-CURLY_L: '{';
-CURLY_R: '}';
-EXCL: '!';
-COMMA: ',';
+
 VARIABLE: '@' NAME_CHAR+;
-COMMENT: '#' .*?;
 NUMBER: DIGIT+ (DOT DIGIT+)?;
 STR: '"' .*? '"';
-
-COMPARE_EQ: '==';
-COMPARE_NE: '!=';
-COMPARE_G: '>';
-COMPARE_GE: '>=';
-COMPARE_L: '<';
-COMPARE_LE: '<=';
 
 IF: 'if';
 ELSE: 'else';
 WHILE: 'while';
 BREAK: 'break';
 PRINT: 'print';
-DEF: 'def';
+DEF: 'const';
 RETURN: 'return';
 NAME: NAME_CHAR+;
 

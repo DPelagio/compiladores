@@ -3,43 +3,43 @@ class Body(object):
     def __init__(self, lines):
         self.lines = lines
 
-class IfCommand(object):
+class If_statement(object):
     def __init__(self, condition, body, elseBody=None):
         self.condition = condition
         self.body = body
         self.elseBody = elseBody
 
-class WhileCommand(object):
+class While_statement(object):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
 
-class BreakCommand(object):
+class Break_statement(object):
     def __init__(self):
         pass
 
-class PrintCommand(object):
+class Print_statement(object):
     def __init__(self, str):
         self.str = str
 
-class FunctionCommand(object):
+class Function_statement(object):
     def __init__(self, name, params, body):
         self.name = name
         self.params = params
         self.body = body
 
-class FunctionCall(object):
+class Function_call(object):
     def __init__(self, name, params):
         self.name = name
         self.params = params
 
-class ReturnCommand(object):
-    def __init__(self, value):
-        self.value = value
+class Return_statement(object):
+    def __init__(self, expr):
+        self.expr = expr
 
-class Value(object):
-    def __init__(self, value, type):
-        self.value = value
+class Expr(object):
+    def __init__(self, expr, type):
+        self.expr = expr
         self.type = type
 
 class Calculate(object):
@@ -49,6 +49,6 @@ class Calculate(object):
         self.right = right
 
 class Assign(object):
-    def __init__(self, varibale, value):
+    def __init__(self, varibale, expr):
         self.variable = varibale
-        self.value = value
+        self.expr = expr

@@ -1,0 +1,21 @@
+Dear Program,
+
+const test = () => {
+    say -> "NUMMMM" please
+}
+
+call test() please
+save 10+2 in @var please
+
+while -> @var > 0:
+{
+    if -> @var == 5:
+    {
+        break please
+    }
+    
+    say -> @var please
+    save @var - 1 in @var please
+}
+
+Thank you.

@@ -1,7 +1,7 @@
 # Generated from PLParser.g4 by ANTLR 4.7.1
 from antlr4 import *
-from calc.AstClasses import *
-from calc.Enums import *
+from backend.AST import *
+from backend.Enums import *
 if __name__ is not None and "." in __name__:
     from .PLParser import PLParser
     
@@ -40,8 +40,8 @@ class PLVisitor(ParseTreeVisitor):
                 aggregate.append(childResult)
         return aggregate
 
-    # Visit a parse tree produced by PLParser#script.
-    def visitScript(self, ctx:PLParser.ScriptContext):
+    # Visit a parse tree produced by PLParser#program.
+    def visitProgram(self, ctx:PLParser.ProgramContext):
         return Body(self.visitChildren(ctx))
 
 
@@ -50,129 +50,108 @@ class PLVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by PLParser#command.
-    def visitCommand(self, ctx:PLParser.CommandContext):
+    # Visit a parse tree produced by PLParser#ctrl_statement.
+    def visitCtrl_statement(self, ctx:PLParser.Ctrl_statementContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by PLParser#IfCommandBody.
-    def visitIfCommandBody(self, ctx:PLParser.IfCommandBodyContext):
+    # Visit a parse tree produced by PLParser#if_statement.
+    def visitIf_statement(self, ctx:PLParser.If_statementContext):
         if ctx.elseBody != None:
-            return IfCommand(self.visit(ctx.value()), self.visit(ctx.body()), self.visit(ctx.elseBody))
+            return If_statement(self.visit(ctx.expr()), self.visit(ctx.body()), self.visit(ctx.elseBody))
         else:
-            return IfCommand(self.visit(ctx.value()), self.visit(ctx.body()))
+            return If_statement(self.visit(ctx.expr()), self.visit(ctx.body()))
 
 
-    # Visit a parse tree produced by PLParser#IfCommandSingle.
-    def visitIfCommandSingle(self, ctx:PLParser.IfCommandSingleContext):
-        if ctx.elseBody != None:
-            return IfCommand(self.visit(ctx.value()), self.visit(ctx.command()), self.visit(ctx.elseBody))
-        else:
-            return IfCommand(self.visit(ctx.value()), self.visit(ctx.command()))
-
-
-    # Visit a parse tree produced by PLParser#ElseCommandBody.
-    def visitElseCommandBody(self, ctx:PLParser.ElseCommandBodyContext):
+    # Visit a parse tree produced by PLParser#else_statement.
+    def visitElse_statement(self, ctx:PLParser.Else_statementContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by PLParser#ElseCommandSingle.
-    def visitElseCommandSingle(self, ctx:PLParser.ElseCommandSingleContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by PLParser#WhileCommandBody.
-    def visitWhileCommandBody(self, ctx:PLParser.WhileCommandBodyContext):
+    # Visit a parse tree produced by PLParser#while_statement.
+    def visitWhile_statement(self, ctx:PLParser.While_statementContext):
         self._loopDepth += 1
-        command = WhileCommand(self.visit(ctx.value()), self.visit(ctx.body()))
+        command = While_statement(self.visit(ctx.expr()), self.visit(ctx.body()))
         self._loopDepth -= 1
 
         return command
 
 
-    # Visit a parse tree produced by PLParser#WhileCommandSingle.
-    def visitWhileCommandSingle(self, ctx:PLParser.WhileCommandSingleContext):
-        self._loopDepth += 1
-        command = WhileCommand(self.visit(ctx.value()), self.visit(ctx.command()))
-        self._loopDepth -= 1
-
-        return command
-
-
-    # Visit a parse tree produced by PLParser#BreakCommand.
-    def visitBreakCommand(self, ctx:PLParser.BreakCommandContext):
+    # Visit a parse tree produced by PLParser#break_statement.
+    def visitBreak_statement(self, ctx:PLParser.Break_statementContext):
         if self._loopDepth == 0:
             raise Exception("'break' command found outside loop.")
-        return BreakCommand()
+        return Break_statement()
 
-    # Visit a parse tree produced by PLParser#PrintCommand.
-    def visitPrintCommand(self, ctx:PLParser.PrintCommandContext):
-        return PrintCommand(self.visit(ctx.value()))
 
-    # Visit a parse tree produced by PLParser#FunctionCommand.
-    def visitFunctionCommand(self, ctx:PLParser.FunctionCommandContext):
+    # Visit a parse tree produced by PLParser#print_statement.
+    def visitPrint_statement(self, ctx:PLParser.Print_statementContext):
+        return Print_statement(self.visit(ctx.expr()))
+
+
+    # Visit a parse tree produced by PLParser#function_statement.
+    def visitFunction_statement(self, ctx:PLParser.Function_statementContext):
         parameters = [param.symbol.text for param in ctx.VARIABLE()]
-        return FunctionCommand(ctx.funcName.text, parameters, self.visit(ctx.body()))
-
-
-    # Visit a parse tree produced by PLParser#FunctionCall.
-    def visitFunctionCall(self, ctx:PLParser.FunctionCallContext):
-        parameters = [self.visit(param) for param in ctx.value()]
         self._functionDepth += 1
-        command = FunctionCall(ctx.funcName.text, parameters)
+        command = Function_statement(ctx.funcName.text, parameters, self.visit(ctx.body()))
+        self._functionDepth -= 1
+        
+        return command
+
+
+    # Visit a parse tree produced by PLParser#function_call.
+    def visitFunction_call(self, ctx:PLParser.Function_callContext):
+        parameters = [self.visit(param) for param in ctx.expr()]
+        self._functionDepth += 1
+        command = Function_call(ctx.funcName.text, parameters)
         self._functionDepth -= 1
 
         return command
 
 
-    # Visit a parse tree produced by PLParser#ReturnCommand.
-    def visitReturnCommand(self, ctx:PLParser.ReturnCommandContext):
+    # Visit a parse tree produced by PLParser#return_statement.
+    def visitReturn_statement(self, ctx:PLParser.Return_statementContext):
         if self._functionDepth == 0:
             raise Exception("'return' command found outside a function.")
-        return ReturnCommand(self.visit(ctx.value()))
-
-
-    # Visit a parse tree produced by PLParser#comment.
-    def visitComment(self, ctx:PLParser.CommentContext):
-        return self.visitChildren(ctx)
+        return Return_statement(self.visit(ctx.expr()))
 
 
     # Visit a parse tree produced by PLParser#assign.
     def visitAssign(self, ctx:PLParser.AssignContext):
-        if (ctx.value() != None):
-            return Assign(ctx.VARIABLE().symbol.text, self.visit(ctx.value()))
+        if (ctx.expr() != None):
+            return Assign(ctx.VARIABLE().symbol.text, self.visit(ctx.expr()))
         else:
             return Assign(ctx.VARIABLE().symbol.text, self.visit(ctx.calculate()))
 
 
-    # Visit a parse tree produced by PLParser#value.
-    def visitValue(self, ctx:PLParser.ValueContext):
+    # Visit a parse tree produced by PLParser#expr.
+    def visitExpr(self, ctx:PLParser.ExprContext):
         if ctx.VARIABLE() != None:
-            return Value(ctx.VARIABLE().symbol.text, ValueType.VARIABLE)
+            return Expr(ctx.VARIABLE().symbol.text, Types.VARIABLE)
         elif ctx.NUMBER() != None:
-            return Value((int)(ctx.NUMBER().symbol.text), ValueType.NUMCONST)
+            return Expr((int)(ctx.NUMBER().symbol.text), Types.NUMCONST)
         elif ctx.STR() != None:
-            return Value(ctx.STR().symbol.text[1:-1], ValueType.STRCONST)
+            return Expr(ctx.STR().symbol.text[1:-1], Types.STRCONST)
         elif ctx.unaryMin != None:
-            return Calculate(None, OperatorType.UNARYMIN, self.visit(ctx.right))
+            return Calculate(None, Operations.UNARYMIN, self.visit(ctx.right))
         elif ctx.unaryNot != None:
-            return Calculate(None, OperatorType.UNARYNOT, self.visit(ctx.right))
+            return Calculate(None, Operations.UNARYNOT, self.visit(ctx.right))
         elif ctx.funcCall != None:
-            return Calculate(None, OperatorType.FUNCCALL, self.visit(ctx.funcCall))
-        elif ctx.bracedValue != None:
-            return self.visit(ctx.bracedValue)
+            return Calculate(None, Operations.FUNCCALL, self.visit(ctx.funcCall))
+        elif ctx.bracedExpr != None:
+            return self.visit(ctx.bracedExpr)
         elif ctx.mul != None or ctx.add != None or ctx.cmp != None:
             operators = {
-                "+": OperatorType.ADD,
-                "-": OperatorType.SUBTRACT,
-                "*": OperatorType.MULTIPLY,
-                "/": OperatorType.DIVIDE,
-                "==": OperatorType.COMPARE_EQ,
-                "!=": OperatorType.COMPARE_NE,
-                ">": OperatorType.COMPARE_G,
-                ">=": OperatorType.COMPARE_GE,
-                "<": OperatorType.COMPARE_L,
-                "<=": OperatorType.COMPARE_LE,
+                "+": Operations.ADD,
+                "-": Operations.SUBTRACT,
+                "*": Operations.MULTIPLY,
+                "/": Operations.DIVIDE,
+                "==": Operations.COMPARE_EQ,
+                "!=": Operations.COMPARE_NE,
+                ">": Operations.COMPARE_G,
+                ">=": Operations.COMPARE_GE,
+                "<": Operations.COMPARE_L,
+                "<=": Operations.COMPARE_LE,
             }
             if ctx.mul != None:
                 op = operators[ctx.mul.text]

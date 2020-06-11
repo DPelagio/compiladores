@@ -1,11 +1,11 @@
 from enum import Enum
 
-class ValueType(Enum):
+class Types(Enum):
     VARIABLE = 1
     NUMCONST = 2
     STRCONST = 3
 
-class OperatorType(Enum):
+class Operations(Enum):
     ADD = 1
     SUBTRACT = 2
     MULTIPLY = 3
