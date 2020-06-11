@@ -228,3 +228,14 @@ donde:
 
 ## Escribir código con Polite Language
 Con base en la sintaxis descrita se puede escribir el algoritmo que se requiera con extensión `.please` y ejecutarse con `python3 main.py nuevo_programa.please`
+
+
+## Referencias
+
+Para crear este proyecto nos basamos en varios tutoriales y demos que encontramos acerca de cómo utilizar la herramienta ANTLR, al igual de cómo generar la gramática válidad para la herramienta, a continuación los links de donde tomamos tutoriales como referencias:
+
+1. https://medium.com/@fwouts/a-quick-intro-to-antlr4-5f4f35719823
+2. http://andrej-mohar.com/blog/antlr-the-basics-of-parsing-programming-languages-source-code
+3. https://medium.com/@raguiar2/building-a-working-calculator-in-python-with-antlr-d879e2ea9058
+4. https://hackernoon.com/creating-a-scripting-language-with-antlr-part-1-1b42c3e4d718
+5. https://github.com/antlr/grammars-v4
