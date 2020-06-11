@@ -102,3 +102,16 @@ python3 main.py simple_test
 ```
 
 donde `simple_test` es el nombre del archivo
+
+## Referencias
+
+Para crear este proyecto nos basamos en varios tutoriales y demos que encontramos acerca de cómo utilizar la herramienta ANTLR, al igual de cómo generar la gramática válidad para la herramienta, a continuación los links de donde tomamos tutoriales como referencias:
+
+1. https://medium.com/@fwouts/a-quick-intro-to-antlr4-5f4f35719823
+2. http://andrej-mohar.com/blog/antlr-the-basics-of-parsing-programming-languages-source-code
+3. https://medium.com/@raguiar2/building-a-working-calculator-in-python-with-antlr-d879e2ea9058
+4. https://hackernoon.com/creating-a-scripting-language-with-antlr-part-1-1b42c3e4d718
+5. https://github.com/antlr/grammars-v4
+
+
+
